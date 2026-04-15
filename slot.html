@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>スロット</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Hiragino Kaku Gothic ProN", Arial, sans-serif;
+      color: #fff;
+    }
+
+    .machine {
+      background: linear-gradient(180deg, #2a0a4a 0%, #1a0533 100%);
+      border: 4px solid #f0c040;
+      border-radius: 24px;
+      padding: 28px 24px 24px;
+      width: 340px;
+      box-shadow: 0 0 40px rgba(240,192,64,0.4), inset 0 0 30px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 6px;
+      color: #f0c040;
+      text-shadow: 0 0 12px rgba(240,192,64,0.8);
+      margin-bottom: 20px;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .info-box {
+      background: #0d0020;
+      border: 2px solid #f0c040;
+      border-radius: 8px;
+      padding: 6px 14px;
+      text-align: center;
+      flex: 1;
+      margin: 0 4px;
+    }
+
+    .info-box .label {
+      font-size: 10px;
+      color: #f0c040;
+      letter-spacing: 2px;
+    }
+
+    .info-box .amount {
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      min-width: 60px;
+    }
+
+    .reels-wrapper {
+      background: #0d0020;
+      border: 3px solid #f0c040;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .reels {
+      display: flex;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .reel-container {
+      flex: 1;
+      overflow: hidden;
+      height: 120px;
+      position: relative;
+      border-radius: 6px;
+      background: #050010;
+    }
+
+    .reel-container::before,
+    .reel-container::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: rgba(240,192,64,0.3);
+      z-index: 2;
+    }
+    .reel-container::before { top: 40px; }
+    .reel-container::after  { bottom: 40px; }
+
+    .reel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      transition: none;
+    }
+
+    .symbol {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      user-select: none;
+    }
+
+    .win-line {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: -10px; right: -10px;
+      height: 120px;
+      border-top: 2px solid #f0c040;
+      border-bottom: 2px solid #f0c040;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 5;
+    }
+
+    .win-line.show { opacity: 1; }
+
+    .bet-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .bet-btn {
+      width: 36px;
+      height: 36px;
+      background: #2a0a4a;
+      border: 2px solid #f0c040;
+      border-radius: 50%;
+      color: #f0c040;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background 0.1s;
+    }
+
+    .bet-btn:active { background: #4a1a6a; }
+
+    .bet-display {
+      background: #0d0020;
+      border: 2px solid #f0c040;
+      border-radius: 8px;
+      padding: 6px 20px;
+      font-size: 20px;
+      font-weight: bold;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .bet-label {
+      font-size: 11px;
+      color: #f0c040;
+      letter-spacing: 1px;
+    }
+
+    #spin-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(180deg, #f0c040 0%, #c08020 100%);
+      border: none;
+      border-radius: 12px;
+      color: #1a0533;
+      font-size: 22px;
+      font-weight: bold;
+      font-family: inherit;
+      letter-spacing: 3px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #805010, 0 0 20px rgba(240,192,64,0.5);
+      transition: transform 0.1s, box-shadow 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      margin-bottom: 10px;
+    }
+
+    #spin-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #805010;
+    }
+
+    #spin-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      text-align: center;
+      font-size: 15px;
+      min-height: 24px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .msg-win    { color: #f0c040; text-shadow: 0 0 10px rgba(240,192,64,0.8); }
+    .msg-jackpot { color: #ff4444; text-shadow: 0 0 14px rgba(255,68,68,0.9); font-size: 18px; }
+    .msg-lose   { color: #888; }
+
+    .paytable {
+      margin-top: 16px;
+      background: #0d0020;
+      border: 1px solid #3a1a5a;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    .paytable-title {
+      color: #f0c040;
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .paytable-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+
+    .paytable-row .symbols { font-size: 14px; }
+    .paytable-row .multiplier { color: #f0c040; }
+
+    @keyframes flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .jackpot-flash {
+      animation: flash 0.3s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="machine">
+    <div class="title">★ SLOT ★</div>
+
+    <div class="info-bar">
+      <div class="info-box">
+        <div class="label">CREDIT</div>
+        <div class="amount" id="credit">1000</div>
+      </div>
+      <div class="info-box">
+        <div class="label">WIN</div>
+        <div class="amount" id="win-display">0</div>
+      </div>
+    </div>
+
+    <div class="reels-wrapper" style="position:relative;">
+      <div class="reels" id="reels">
+        <div class="reel-container">
+          <div class="reel" id="reel-0"></div>
+        </div>
+        <div class="reel-container">
+          <div class="reel" id="reel-1"></div>
+        </div>
+        <div class="reel-container">
+          <div class="reel" id="reel-2"></div>
+        </div>
+      </div>
+      <div class="win-line" id="win-line"></div>
+    </div>
+
+    <div class="bet-row">
+      <button class="bet-btn" id="bet-down" onclick="changeBet(-10)">－</button>
+      <div>
+        <div class="bet-label" style="text-align:center;">BET</div>
+        <div class="bet-display" id="bet-display">10</div>
+      </div>
+      <button class="bet-btn" id="bet-up" onclick="changeBet(10)">＋</button>
+    </div>
+
+    <button id="spin-btn" onclick="spin()">SPIN</button>
+
+    <div id="message">幸運を祭ります！</div>
+
+    <div class="paytable">
+      <div class="paytable-title">── 配当表 ──</div>
+      <div class="paytable-row"><span class="symbols">7️⃣7️⃣7️⃣</span><span class="multiplier">×50 JACKPOT</span></div>
+      <div class="paytable-row"><span class="symbols">💎💎💎</span><span class="multiplier">×20</span></div>
+      <div class="paytable-row"><span class="symbols">🍀🍀🍀</span><span class="multiplier">×10</span></div>
+      <div class="paytable-row"><span class="symbols">⭐⭐⭐</span><span class="multiplier">×8</span></div>
+      <div class="paytable-row"><span class="symbols">🍒🍒🍒</span><span class="multiplier">×5</span></div>
+      <div class="paytable-row"><span class="symbols">🍋🍋🍋</span><span class="multiplier">×4</span></div>
+      <div class="paytable-row"><span class="symbols">🍇🍇🍇</span><span class="multiplier">×3</span></div>
+      <div class="paytable-row"><span class="symbols">任意2つ揃い</span><span class="multiplier">×1</span></div>
+    </div>
+  </div>
+
+  <script>
+    const SYMBOLS = ['7️⃣','💎','🍀','⭐','🍒','🍋','🍇','🔔'];
+    const WEIGHTS  = [  1,   2,   3,   5,   8,  10,  12,  15];
+    const MULTIPLIERS = { '7️⃣':50, '💎':20, '🍀':10, '⭐':8, '🍒':5, '🍋':4, '🍇':3 };
+
+    const POOL = [];
+    SYMBOLS.forEach((s, i) => {
+      for (let j = 0; j < WEIGHTS[i]; j++) POOL.push(s);
+    });
+
+    let credit = 1000;
+    let bet = 10;
+    let spinning = false;
+
+    const REEL_LENGTH = 30;
+
+    function buildReel(el) {
+      el.innerHTML = '';
+      for (let i = 0; i < REEL_LENGTH; i++) {
+        const div = document.createElement('div');
+        div.className = 'symbol';
+        div.textContent = POOL[Math.floor(Math.random() * POOL.length)];
+        el.appendChild(div);
+      }
+    }
+
+    ['reel-0','reel-1','reel-2'].forEach(id => buildReel(document.getElementById(id)));
+
+    function updateUI() {
+      document.getElementById('credit').textContent = credit.toLocaleString();
+      document.getElementById('bet-display').textContent = bet;
+    }
+
+    function changeBet(delta) {
+      if (spinning) return;
+      bet = Math.max(10, Math.min(credit, bet + delta));
+      updateUI();
+    }
+
+    function weightedRandom() {
+      return POOL[Math.floor(Math.random() * POOL.length)];
+    }
+
+    function spin() {
+      if (spinning || credit < bet) return;
+      spinning = true;
+      credit -= bet;
+      document.getElementById('win-display').textContent = 0;
+      document.getElementById('win-line').classList.remove('show');
+      document.getElementById('message').textContent = '';
+      document.getElementById('message').className = '';
+      document.getElementById('spin-btn').disabled = true;
+      updateUI();
+
+      const results = [weightedRandom(), weightedRandom(), weightedRandom()];
+
+      const reelEls = [
+        document.getElementById('reel-0'),
+        document.getElementById('reel-1'),
+        document.getElementById('reel-2'),
+      ];
+
+      const stopTimes = [900, 1300, 1700];
+
+      reelEls.forEach((reelEl, idx) => {
+        const symbols = reelEl.querySelectorAll('.symbol');
+        symbols[symbols.length - 1].textContent = results[idx];
+
+        let pos = 0;
+        const speed = 18 + idx * 2;
+
+        function animate() {
+          pos += speed;
+          const total = REEL_LENGTH * 120;
+          pos = pos % total;
+          reelEl.style.transform = `translateY(${pos - total + 120}px)`;
+          reelEl._rafId = requestAnimationFrame(animate);
+        }
+
+        reelEl.style.transition = 'none';
+        animate();
+
+        setTimeout(() => {
+          cancelAnimationFrame(reelEl._rafId);
+          reelEl.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
+          reelEl.style.transform = 'translateY(0px)';
+          symbols[0].textContent = results[idx];
+
+          if (idx === 2) {
+            setTimeout(() => showResult(results), 250);
+          }
+        }, stopTimes[idx]);
+      });
+    }
+
+    function showResult(results) {
+      const [a, b, c] = results;
+      let multiplier = 0;
+      let msgText = '';
+      let msgClass = 'msg-lose';
+      let isJackpot = false;
+
+      if (a === b && b === c) {
+        multiplier = MULTIPLIERS[a] || 2;
+        if (a === '7️⃣') {
+          msgText = '🎉 JACKPOT!! 🎉';
+          msgClass = 'msg-jackpot';
+          isJackpot = true;
+        } else {
+          msgText = `✨ 3つ揃い！ ×${multiplier}`;
+          msgClass = 'msg-win';
+        }
+      } else if (a === b || b === c || a === c) {
+        multiplier = 1;
+        msgText = '2つ揃い！ ×1（返却）';
+        msgClass = 'msg-win';
+      } else {
+        msgText = 'はずれ…';
+        msgClass = 'msg-lose';
+      }
+
+      const winAmount = bet * multiplier;
+      credit += winAmount;
+      document.getElementById('win-display').textContent = winAmount > 0 ? winAmount.toLocaleString() : 0;
+      document.getElementById('message').textContent = msgText;
+      document.getElementById('message').className = msgClass;
+
+      if (multiplier > 0) {
+        document.getElementById('win-line').classList.add('show');
+      }
+
+      if (isJackpot) {
+        document.getElementById('message').classList.add('jackpot-flash');
+      }
+
+      updateUI();
+
+      if (credit < 10) {
+        credit = 1000;
+        bet = 10;
+        setTimeout(() => {
+          document.getElementById('message').textContent = 'クレジット補充！ 1000枚追加';
+          document.getElementById('message').className = 'msg-win';
+          updateUI();
+        }, 1500);
+      }
+
+      spinning = false;
+      document.getElementById('spin-btn').disabled = false;
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
