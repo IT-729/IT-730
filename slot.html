@@ -8,482 +8,647 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+      background: linear-gradient(135deg, #1a0533, #0d1b4b);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: "Hiragino Kaku Gothic ProN", Arial, sans-serif;
       color: #fff;
+      overflow: hidden;
     }
 
+    /* ===== フルスクリーン演出レイヤー ===== */
+    #flash-overlay {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 100; opacity: 0;
+    }
+
+    #particle-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 50;
+    }
+
+    #jackpot-overlay {
+      position: fixed; inset: 0;
+      display: none; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 200;
+      background: rgba(0,0,0,0.75);
+      gap: 16px;
+    }
+
+    #jackpot-overlay h1 {
+      font-size: 54px; color: #f0c040;
+      text-shadow: 0 0 30px #f0c040, 0 0 60px rgba(240,192,64,0.6);
+      letter-spacing: 4px;
+      animation: jpulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes jpulse {
+      from { transform: scale(1); }
+      to   { transform: scale(1.07); }
+    }
+
+    #jackpot-overlay .jp-amount { font-size: 28px; color: #fff; }
+    #jackpot-overlay .jp-close {
+      margin-top: 10px; padding: 12px 32px;
+      background: #f0c040; border: none; border-radius: 8px;
+      color: #1a0533; font-size: 18px; font-family: inherit;
+      font-weight: bold; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== マシン本体 ===== */
     .machine {
-      background: linear-gradient(180deg, #2a0a4a 0%, #1a0533 100%);
+      background: linear-gradient(180deg, #2a0a4a, #1a0533);
       border: 4px solid #f0c040;
       border-radius: 24px;
-      padding: 28px 24px 24px;
+      padding: 22px 18px 18px;
       width: 340px;
-      box-shadow: 0 0 40px rgba(240,192,64,0.4), inset 0 0 30px rgba(0,0,0,0.5);
-      position: relative;
+      box-shadow: 0 0 40px rgba(240,192,64,0.35), inset 0 0 30px rgba(0,0,0,0.5);
+      position: relative; z-index: 10;
     }
 
-    /* タイトル */
     .title {
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      letter-spacing: 6px;
-      color: #f0c040;
+      text-align: center; font-size: 26px; font-weight: bold;
+      letter-spacing: 6px; color: #f0c040;
       text-shadow: 0 0 12px rgba(240,192,64,0.8);
-      margin-bottom: 20px;
-    }
-
-    /* クレジット表示 */
-    .info-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .info-box {
-      background: #0d0020;
-      border: 2px solid #f0c040;
-      border-radius: 8px;
-      padding: 6px 14px;
-      text-align: center;
-      flex: 1;
-      margin: 0 4px;
-    }
-
-    .info-box .label {
-      font-size: 10px;
-      color: #f0c040;
-      letter-spacing: 2px;
-    }
-
-    .info-box .amount {
-      font-size: 22px;
-      font-weight: bold;
-      color: #fff;
-      min-width: 60px;
-    }
-
-    /* リール */
-    .reels-wrapper {
-      background: #0d0020;
-      border: 3px solid #f0c040;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 16px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    }
-
-    .reels {
-      display: flex;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .reel-container {
-      flex: 1;
-      overflow: hidden;
-      height: 120px;
-      position: relative;
-      border-radius: 6px;
-      background: #050010;
-    }
-
-    /* 当選ライン */
-    .reel-container::before,
-    .reel-container::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      height: 1px;
-      background: rgba(240,192,64,0.3);
-      z-index: 2;
-    }
-    .reel-container::before { top: 40px; }
-    .reel-container::after  { bottom: 40px; }
-
-    .reel {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      transition: none;
-    }
-
-    .symbol {
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 52px;
-      user-select: none;
-    }
-
-    /* 当選ライン光 */
-    .win-line {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      left: -10px; right: -10px;
-      height: 120px;
-      border-top: 2px solid #f0c040;
-      border-bottom: 2px solid #f0c040;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 5;
-    }
-
-    .win-line.show { opacity: 1; }
-
-    /* ベット */
-    .bet-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
       margin-bottom: 14px;
     }
 
-    .bet-btn {
-      width: 36px;
-      height: 36px;
-      background: #2a0a4a;
-      border: 2px solid #f0c040;
-      border-radius: 50%;
-      color: #f0c040;
-      font-size: 20px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: background 0.1s;
+    .info-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+
+    .info-box {
+      background: #0d0020; border: 2px solid #f0c040;
+      border-radius: 8px; padding: 5px 10px;
+      text-align: center; flex: 1;
     }
 
+    .info-box .label { font-size: 10px; color: #f0c040; letter-spacing: 2px; }
+    .info-box .amount { font-size: 20px; font-weight: bold; }
+
+    /* ===== ライン番号 + リール ===== */
+    .reels-section { display: flex; align-items: center; gap: 5px; margin-bottom: 12px; }
+
+    .payline-nums { display: flex; flex-direction: column; width: 16px; }
+
+    .pl-num {
+      height: 80px; display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: bold;
+      color: #444; border-radius: 4px;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    .pl-num.lit { color: #f0c040; text-shadow: 0 0 8px rgba(240,192,64,0.9); }
+
+    .reels-wrapper {
+      flex: 1;
+      background: #0d0020; border: 3px solid #f0c040;
+      border-radius: 10px; padding: 6px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .reels { display: flex; gap: 6px; }
+
+    .reel-container {
+      flex: 1; overflow: hidden; height: 240px;  /* 3行 × 80px */
+      position: relative; border-radius: 6px; background: #050010;
+      transition: filter 0.15s;
+    }
+
+    .reel-container.spinning { filter: blur(3px) brightness(1.2); }
+
+    /* 中央ラインの区切り線 */
+    .reel-container::before, .reel-container::after {
+      content: ''; position: absolute; left: 0; right: 0;
+      height: 1px; background: rgba(240,192,64,0.25); z-index: 3;
+    }
+    .reel-container::before { top:  80px; }
+    .reel-container::after  { bottom: 80px; }
+
+    .reel { position: absolute; top: 0; left: 0; right: 0; }
+
+    .symbol {
+      height: 80px; display: flex; align-items: center;
+      justify-content: center; font-size: 40px; user-select: none;
+    }
+
+    .symbol.win-bounce { animation: sbounce 0.45s ease-out forwards; filter: drop-shadow(0 0 10px gold); }
+    @keyframes sbounce {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.35); }
+      65%  { transform: scale(0.92); }
+      100% { transform: scale(1.05); }
+    }
+
+    /* 勝利ライン canvas */
+    #win-canvas {
+      position: absolute; inset: 0;
+      pointer-events: none; border-radius: 8px;
+      z-index: 2;
+    }
+
+    /* ===== ベット ===== */
+    .bet-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 12px;
+    }
+
+    .bet-btn {
+      width: 38px; height: 38px; background: #2a0a4a;
+      border: 2px solid #f0c040; border-radius: 50%;
+      color: #f0c040; font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
     .bet-btn:active { background: #4a1a6a; }
 
+    .bet-center { text-align: center; }
+    .bet-label { font-size: 10px; color: #f0c040; letter-spacing: 2px; }
     .bet-display {
-      background: #0d0020;
-      border: 2px solid #f0c040;
-      border-radius: 8px;
-      padding: 6px 20px;
-      font-size: 20px;
-      font-weight: bold;
-      min-width: 80px;
-      text-align: center;
+      background: #0d0020; border: 2px solid #f0c040;
+      border-radius: 8px; padding: 5px 16px;
+      font-size: 20px; font-weight: bold; min-width: 80px;
     }
 
-    .bet-label {
-      font-size: 11px;
-      color: #f0c040;
-      letter-spacing: 1px;
-    }
-
-    /* スピンボタン */
+    /* ===== SPINボタン ===== */
     #spin-btn {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(180deg, #f0c040 0%, #c08020 100%);
-      border: none;
-      border-radius: 12px;
-      color: #1a0533;
-      font-size: 22px;
-      font-weight: bold;
-      font-family: inherit;
-      letter-spacing: 3px;
-      cursor: pointer;
-      box-shadow: 0 6px 0 #805010, 0 0 20px rgba(240,192,64,0.5);
-      transition: transform 0.1s, box-shadow 0.1s;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      width: 100%; padding: 14px;
+      background: linear-gradient(180deg, #f0c040, #c08020);
+      border: none; border-radius: 12px; color: #1a0533;
+      font-size: 22px; font-weight: bold; font-family: inherit;
+      letter-spacing: 3px; cursor: pointer;
+      box-shadow: 0 6px 0 #805010;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
       margin-bottom: 10px;
+      transition: transform 0.1s, box-shadow 0.1s;
     }
+    #spin-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #805010; }
+    #spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    #spin-btn:active:not(:disabled) {
-      transform: translateY(4px);
-      box-shadow: 0 2px 0 #805010;
-    }
-
-    #spin-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* メッセージ */
+    /* ===== メッセージ ===== */
     #message {
-      text-align: center;
-      font-size: 15px;
-      min-height: 24px;
-      font-weight: bold;
-      letter-spacing: 1px;
+      text-align: center; font-size: 14px;
+      min-height: 22px; font-weight: bold; letter-spacing: 1px;
     }
+    .msg-win  { color: #f0c040; text-shadow: 0 0 10px rgba(240,192,64,0.8); }
+    .msg-lose { color: #555; }
 
-    .msg-win    { color: #f0c040; text-shadow: 0 0 10px rgba(240,192,64,0.8); }
-    .msg-jackpot { color: #ff4444; text-shadow: 0 0 14px rgba(255,68,68,0.9); font-size: 18px; }
-    .msg-lose   { color: #888; }
-
-    /* 絵柄表 */
+    /* ===== 配当表 ===== */
     .paytable {
-      margin-top: 16px;
-      background: #0d0020;
-      border: 1px solid #3a1a5a;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 11px;
-      color: #aaa;
+      margin-top: 12px; background: #0d0020;
+      border: 1px solid #3a1a5a; border-radius: 8px;
+      padding: 8px 10px; font-size: 11px; color: #999;
     }
-
-    .paytable-title {
-      color: #f0c040;
-      font-size: 11px;
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-      text-align: center;
-    }
-
-    .paytable-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 2px 0;
-    }
-
-    .paytable-row .symbols { font-size: 14px; }
-    .paytable-row .multiplier { color: #f0c040; }
-
-    /* ジャックポット演出 */
-    @keyframes flash {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .jackpot-flash {
-      animation: flash 0.3s infinite;
-    }
+    .pt-title { color: #f0c040; font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; text-align: center; }
+    .pt-row { display: flex; justify-content: space-between; padding: 1px 0; }
+    .pt-row .syms { font-size: 13px; }
+    .pt-row .mult { color: #f0c040; }
   </style>
 </head>
 <body>
+
+  <div id="flash-overlay"></div>
+  <canvas id="particle-canvas"></canvas>
+  <div id="jackpot-overlay">
+    <h1>JACKPOT!!</h1>
+    <p class="jp-amount" id="jackpot-amount"></p>
+    <button class="jp-close" onclick="closeJackpot()">OK</button>
+  </div>
+
   <div class="machine">
     <div class="title">★ SLOT ★</div>
 
     <div class="info-bar">
-      <div class="info-box">
-        <div class="label">CREDIT</div>
-        <div class="amount" id="credit">1000</div>
+      <div class="info-box"><div class="label">CREDIT</div><div class="amount" id="credit">1000</div></div>
+      <div class="info-box"><div class="label">WIN</div><div class="amount" id="win-display">0</div></div>
+    </div>
+
+    <div class="reels-section">
+      <div class="payline-nums" id="pl-left">
+        <div class="pl-num" data-line="0">1</div>
+        <div class="pl-num" data-line="1">2</div>
+        <div class="pl-num" data-line="2">3</div>
       </div>
-      <div class="info-box">
-        <div class="label">WIN</div>
-        <div class="amount" id="win-display">0</div>
+
+      <div class="reels-wrapper" id="reels-wrapper">
+        <div class="reels">
+          <div class="reel-container" id="rc-0"><div class="reel" id="reel-0"></div></div>
+          <div class="reel-container" id="rc-1"><div class="reel" id="reel-1"></div></div>
+          <div class="reel-container" id="rc-2"><div class="reel" id="reel-2"></div></div>
+        </div>
+        <canvas id="win-canvas"></canvas>
+      </div>
+
+      <div class="payline-nums" id="pl-right">
+        <div class="pl-num" data-line="0">1</div>
+        <div class="pl-num" data-line="1">2</div>
+        <div class="pl-num" data-line="2">3</div>
       </div>
     </div>
 
-    <!-- リール -->
-    <div class="reels-wrapper" style="position:relative;">
-      <div class="reels" id="reels">
-        <div class="reel-container">
-          <div class="reel" id="reel-0"></div>
-        </div>
-        <div class="reel-container">
-          <div class="reel" id="reel-1"></div>
-        </div>
-        <div class="reel-container">
-          <div class="reel" id="reel-2"></div>
-        </div>
-      </div>
-      <div class="win-line" id="win-line"></div>
-    </div>
-
-    <!-- ベット -->
     <div class="bet-row">
-      <button class="bet-btn" id="bet-down" onclick="changeBet(-10)">−</button>
-      <div>
-        <div class="bet-label" style="text-align:center;">BET</div>
+      <button class="bet-btn" ontouchstart="changeBet(-10)" onclick="changeBet(-10)">−</button>
+      <div class="bet-center">
+        <div class="bet-label">BET</div>
         <div class="bet-display" id="bet-display">10</div>
       </div>
-      <button class="bet-btn" id="bet-up" onclick="changeBet(10)">＋</button>
+      <button class="bet-btn" ontouchstart="changeBet(10)" onclick="changeBet(10)">＋</button>
     </div>
 
     <button id="spin-btn" onclick="spin()">SPIN</button>
-
     <div id="message">幸運を祈ります！</div>
 
     <div class="paytable">
-      <div class="paytable-title">── 配当表 ──</div>
-      <div class="paytable-row"><span class="symbols">7️⃣7️⃣7️⃣</span><span class="multiplier">×50 JACKPOT</span></div>
-      <div class="paytable-row"><span class="symbols">💎💎💎</span><span class="multiplier">×20</span></div>
-      <div class="paytable-row"><span class="symbols">🍀🍀🍀</span><span class="multiplier">×10</span></div>
-      <div class="paytable-row"><span class="symbols">⭐⭐⭐</span><span class="multiplier">×8</span></div>
-      <div class="paytable-row"><span class="symbols">🍒🍒🍒</span><span class="multiplier">×5</span></div>
-      <div class="paytable-row"><span class="symbols">🍋🍋🍋</span><span class="multiplier">×4</span></div>
-      <div class="paytable-row"><span class="symbols">🍇🍇🍇</span><span class="multiplier">×3</span></div>
-      <div class="paytable-row"><span class="symbols">任意2つ揃い</span><span class="multiplier">×1</span></div>
+      <div class="pt-title">── 配当表（1ライン × BET） ──</div>
+      <div class="pt-row"><span class="syms">7️⃣7️⃣7️⃣</span><span class="mult">×50 JACKPOT!</span></div>
+      <div class="pt-row"><span class="syms">💎💎💎</span><span class="mult">×20</span></div>
+      <div class="pt-row"><span class="syms">🍀🍀🍀</span><span class="mult">×10</span></div>
+      <div class="pt-row"><span class="syms">⭐⭐⭐</span><span class="mult">×8</span></div>
+      <div class="pt-row"><span class="syms">🍒🍒🍒</span><span class="mult">×5</span></div>
+      <div class="pt-row"><span class="syms">🍋🍋🍋</span><span class="mult">×4</span></div>
+      <div class="pt-row"><span class="syms">🍇🍇🍇</span><span class="mult">×3</span></div>
     </div>
   </div>
 
   <script>
-    const SYMBOLS = ['7️⃣','💎','🍀','⭐','🍒','🍋','🍇','🔔'];
-    const WEIGHTS  = [  1,   2,   3,   5,   8,  10,  12,  15]; // 出やすさ（小さいほど稀）
-    const MULTIPLIERS = { '7️⃣':50, '💎':20, '🍀':10, '⭐':8, '🍒':5, '🍋':4, '🍇':3 };
+    // ===== 定数 =====
+    const SYMBOLS     = ['7️⃣','💎','🍀','⭐','🍒','🍋','🍇','🔔'];
+    const WEIGHTS     = [  1,   2,   4,   6,   8,  10,  12,  14];
+    const MULTIPLIERS = { '7️⃣':50,'💎':20,'🍀':10,'⭐':8,'🍒':5,'🍋':4,'🍇':3 };
+    const SYM_H   = 80;
+    const STRIP_N = 30;  // リールのシンボル数
 
-    // 重み付きシンボルプール生成
+    // 3本のペイライン [reelIdx, rowIdx]
+    const PAYLINES = [
+      [[0,0],[1,0],[2,0]],  // 上段
+      [[0,1],[1,1],[2,1]],  // 中段
+      [[0,2],[1,2],[2,2]],  // 下段
+    ];
+
+    const LINE_COLORS = ['#ff6868','#f0c040','#68ff88'];
+
+    // 重み付きプール
     const POOL = [];
-    SYMBOLS.forEach((s, i) => {
-      for (let j = 0; j < WEIGHTS[i]; j++) POOL.push(s);
-    });
+    SYMBOLS.forEach((s,i) => { for(let j=0;j<WEIGHTS[i];j++) POOL.push(s); });
+    const rng = () => POOL[Math.floor(Math.random() * POOL.length)];
 
-    let credit = 1000;
-    let bet = 10;
-    let spinning = false;
+    // ===== 状態 =====
+    let credit = 1000, bet = 10, spinning = false;
+    let grid = [[],[],[]]; // grid[reelIdx][row 0..2]
 
-    // リール初期化（各リールに繰り返しシンボルを並べる）
-    const REEL_LENGTH = 30; // リール上のシンボル数
-
+    // ===== リール初期化 =====
     function buildReel(el) {
       el.innerHTML = '';
-      for (let i = 0; i < REEL_LENGTH; i++) {
-        const div = document.createElement('div');
-        div.className = 'symbol';
-        div.textContent = POOL[Math.floor(Math.random() * POOL.length)];
-        el.appendChild(div);
+      for (let i = 0; i < STRIP_N; i++) {
+        const d = document.createElement('div');
+        d.className = 'symbol';
+        d.textContent = rng();
+        el.appendChild(d);
+      }
+    }
+    [0,1,2].forEach(i => buildReel(document.getElementById(`reel-${i}`)));
+
+    // ===== Win canvas サイズ合わせ =====
+    function sizeCanvas() {
+      const w = document.getElementById('reels-wrapper');
+      const c = document.getElementById('win-canvas');
+      c.width  = w.clientWidth;
+      c.height = w.clientHeight;
+    }
+    window.addEventListener('resize', sizeCanvas);
+    setTimeout(sizeCanvas, 50);
+
+    // ===== Particle canvas =====
+    const pCanvas = document.getElementById('particle-canvas');
+    const pCtx    = pCanvas.getContext('2d');
+    pCanvas.width  = window.innerWidth;
+    pCanvas.height = window.innerHeight;
+    let particles  = [];
+
+    function spawnCoins(amount) {
+      const count = Math.min(60, 20 + amount / 5);
+      const machine = document.querySelector('.machine').getBoundingClientRect();
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: machine.left + machine.width / 2 + (Math.random()-0.5)*machine.width*0.8,
+          y: machine.top  + machine.height * 0.4,
+          vx: (Math.random()-0.5) * 6,
+          vy: -(4 + Math.random() * 8),
+          size: 14 + Math.random() * 10,
+          opacity: 1,
+          sym: ['🪙','⭐','💫','✨'][Math.floor(Math.random()*4)],
+          life: 1,
+        });
+      }
+      if (!animatingParticles) animateParticles();
+    }
+
+    let animatingParticles = false;
+    function animateParticles() {
+      animatingParticles = true;
+      pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+      particles = particles.filter(p => p.life > 0);
+      particles.forEach(p => {
+        p.x   += p.vx;
+        p.y   += p.vy;
+        p.vy  += 0.35;
+        p.life -= 0.018;
+        pCtx.globalAlpha = Math.max(0, p.life);
+        pCtx.font = `${p.size}px serif`;
+        pCtx.fillText(p.sym, p.x, p.y);
+      });
+      pCtx.globalAlpha = 1;
+      if (particles.length > 0) requestAnimationFrame(animateParticles);
+      else animatingParticles = false;
+    }
+
+    // ===== 画面フラッシュ =====
+    function flashScreen(color = 'rgba(255,220,50,0.35)') {
+      const el = document.getElementById('flash-overlay');
+      el.style.background = color;
+      el.style.transition = 'none';
+      el.style.opacity = '1';
+      requestAnimationFrame(() => {
+        el.style.transition = 'opacity 0.6s ease-out';
+        el.style.opacity = '0';
+      });
+    }
+
+    // ===== Web Audio 効果音 =====
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playTick() {
+      try {
+        const ctx = getAudioCtx();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 600 + Math.random()*200;
+        o.type = 'triangle';
+        g.gain.setValueAtTime(0.15, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        o.start(); o.stop(ctx.currentTime + 0.08);
+      } catch(e) {}
+    }
+
+    function playWin(isJackpot) {
+      try {
+        const ctx = getAudioCtx();
+        const notes = isJackpot
+          ? [523,659,784,1047,1319]
+          : [523,659,784,1047];
+        notes.forEach((freq, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = freq;
+          o.type = 'sine';
+          const t = ctx.currentTime + i * 0.12;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.18, t + 0.05);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          o.start(t); o.stop(t + 0.25);
+        });
+      } catch(e) {}
+    }
+
+    // ===== ジャックポット演出 =====
+    function triggerJackpot(amount) {
+      document.getElementById('jackpot-amount').textContent = `WIN: ${amount.toLocaleString()} 枚`;
+      const el = document.getElementById('jackpot-overlay');
+      el.style.display = 'flex';
+      flashScreen('rgba(255,220,50,0.6)');
+      spawnCoins(amount);
+      playWin(true);
+    }
+    function closeJackpot() {
+      document.getElementById('jackpot-overlay').style.display = 'none';
+    }
+
+    // ===== ペイライン番号ハイライト =====
+    function highlightPayline(lineIdx) {
+      document.querySelectorAll(`.pl-num[data-line="${lineIdx}"]`).forEach(el => {
+        el.classList.add('lit');
+        el.style.color = LINE_COLORS[lineIdx];
+        el.style.textShadow = `0 0 8px ${LINE_COLORS[lineIdx]}`;
+      });
+    }
+    function clearPaylineHighlights() {
+      document.querySelectorAll('.pl-num').forEach(el => {
+        el.classList.remove('lit');
+        el.style.color = '';
+        el.style.textShadow = '';
+      });
+    }
+
+    // ===== シンボルバウンス =====
+    function bounceSymbol(reelIdx, rowIdx) {
+      const reel = document.getElementById(`reel-${reelIdx}`);
+      const syms = reel.querySelectorAll('.symbol');
+      if (syms[rowIdx]) {
+        syms[rowIdx].classList.remove('win-bounce');
+        void syms[rowIdx].offsetWidth; // reflow
+        syms[rowIdx].classList.add('win-bounce');
       }
     }
 
-    ['reel-0','reel-1','reel-2'].forEach(id => buildReel(document.getElementById(id)));
-
-    function updateUI() {
-      document.getElementById('credit').textContent = credit.toLocaleString();
-      document.getElementById('bet-display').textContent = bet;
+    // ===== 勝利ライン描画 =====
+    function clearWinCanvas() {
+      const c = document.getElementById('win-canvas');
+      c.getContext('2d').clearRect(0,0,c.width,c.height);
     }
 
-    function changeBet(delta) {
-      if (spinning) return;
-      bet = Math.max(10, Math.min(credit, bet + delta));
-      updateUI();
+    function drawWinLines(winLineIndices) {
+      const c   = document.getElementById('win-canvas');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      const pad = 6; // wrapper padding
+
+      winLineIndices.forEach(lineIdx => {
+        const y = pad + lineIdx * SYM_H + SYM_H / 2;
+        const color = LINE_COLORS[lineIdx];
+
+        // グロー帯
+        const grad = ctx.createLinearGradient(0, y-18, 0, y+18);
+        grad.addColorStop(0,   'transparent');
+        grad.addColorStop(0.5, color.replace(')', ',0.18)').replace('rgb','rgba'));
+        grad.addColorStop(1,   'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(pad, y-18, c.width - pad*2, 36);
+
+        // ライン本体
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 14;
+        ctx.setLineDash([10, 5]);
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(c.width - pad, y);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // ラインを点滅させる
+      let tick = 0;
+      const id = setInterval(() => {
+        tick++;
+        if (tick % 2 === 0) drawWinLines(winLineIndices);
+        else {
+          ctx.clearRect(0,0,c.width,c.height);
+        }
+        if (tick >= 8) {
+          clearInterval(id);
+          drawWinLines(winLineIndices); // 最後は表示したまま
+        }
+      }, 280);
     }
 
-    function weightedRandom() {
-      return POOL[Math.floor(Math.random() * POOL.length)];
+    // ===== リール1本スピン =====
+    function spinReel(reelIdx, finalSymbols, stopDelay) {
+      return new Promise(resolve => {
+        const reelEl = document.getElementById(`reel-${reelIdx}`);
+        const rcEl   = document.getElementById(`rc-${reelIdx}`);
+        const syms   = reelEl.querySelectorAll('.symbol');
+
+        rcEl.classList.add('spinning');
+        reelEl.style.transition = 'none';
+
+        let offset = 0;
+        const speed = 14 + reelIdx * 4;
+        let rafId;
+
+        function animate() {
+          offset += speed;
+          const total = STRIP_N * SYM_H;
+          reelEl.style.transform = `translateY(-${offset % total}px)`;
+          rafId = requestAnimationFrame(animate);
+        }
+        rafId = requestAnimationFrame(animate);
+
+        setTimeout(() => {
+          cancelAnimationFrame(rafId);
+          rcEl.classList.remove('spinning');
+
+          // 上位3シンボルを目標値に書き換え
+          syms[0].textContent = finalSymbols[0];
+          syms[1].textContent = finalSymbols[1];
+          syms[2].textContent = finalSymbols[2];
+
+          // translateY=0 へスナップ（イーズアウト）
+          reelEl.style.transition = 'transform 0.2s cubic-bezier(0.22,1,0.36,1)';
+          reelEl.style.transform  = 'translateY(0px)';
+
+          playTick();
+
+          setTimeout(() => {
+            reelEl.style.transition = '';
+            resolve();
+          }, 230);
+        }, stopDelay);
+      });
     }
 
-    function spin() {
+    // ===== メインスピン =====
+    async function spin() {
       if (spinning || credit < bet) return;
       spinning = true;
       credit -= bet;
+
+      // リセット
+      clearWinCanvas();
+      clearPaylineHighlights();
       document.getElementById('win-display').textContent = 0;
-      document.getElementById('win-line').classList.remove('show');
       document.getElementById('message').textContent = '';
       document.getElementById('message').className = '';
       document.getElementById('spin-btn').disabled = true;
       updateUI();
 
-      // 最終結果を先に決定
-      const results = [weightedRandom(), weightedRandom(), weightedRandom()];
+      // 3×3 の出目を先に決定
+      for (let r = 0; r < 3; r++) {
+        grid[r] = [rng(), rng(), rng()]; // [top, mid, bot]
+      }
 
-      const reelEls = [
-        document.getElementById('reel-0'),
-        document.getElementById('reel-1'),
-        document.getElementById('reel-2'),
-      ];
+      // 順番にリール停止
+      await Promise.all([
+        spinReel(0, grid[0], 800),
+        spinReel(1, grid[1], 1200),
+        spinReel(2, grid[2], 1600),
+      ]);
 
-      // 各リールをアニメーション
-      const stopTimes = [900, 1300, 1700]; // 止まるタイミング(ms)
-
-      reelEls.forEach((reelEl, idx) => {
-        // 最後のシンボルを結果に書き換え
-        const symbols = reelEl.querySelectorAll('.symbol');
-        symbols[symbols.length - 1].textContent = results[idx];
-
-        let pos = 0;
-        const speed = 18 + idx * 2; // px per frame
-
-        function animate() {
-          pos += speed;
-          const total = REEL_LENGTH * 120;
-          pos = pos % total;
-          reelEl.style.transform = `translateY(${pos - total + 120}px)`;
-          reelEl._rafId = requestAnimationFrame(animate);
-        }
-
-        reelEl.style.transition = 'none';
-        animate();
-
-        setTimeout(() => {
-          cancelAnimationFrame(reelEl._rafId);
-          // 中央（0px）に合わせて停止
-          reelEl.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
-          reelEl.style.transform = 'translateY(0px)';
-          // 中央シンボルを結果に上書き
-          symbols[0].textContent = results[idx];
-
-          if (idx === 2) {
-            setTimeout(() => showResult(results), 250);
-          }
-        }, stopTimes[idx]);
-      });
+      showResult();
     }
 
-    function showResult(results) {
-      const [a, b, c] = results;
-      let multiplier = 0;
-      let msgText = '';
-      let msgClass = 'msg-lose';
-      let isJackpot = false;
+    function showResult() {
+      const wins = [];
 
-      if (a === b && b === c) {
-        // 3つ揃い
-        multiplier = MULTIPLIERS[a] || 2;
-        if (a === '7️⃣') {
-          msgText = '🎉 JACKPOT!! 🎉';
-          msgClass = 'msg-jackpot';
-          isJackpot = true;
-        } else {
-          msgText = `✨ 3つ揃い！ ×${multiplier}`;
-          msgClass = 'msg-win';
+      PAYLINES.forEach((line, lineIdx) => {
+        const [a,b,c] = line.map(([r,col]) => grid[r][col]);
+        if (a === b && b === c) {
+          const mult = MULTIPLIERS[a] || 2;
+          wins.push({ lineIdx, symbol: a, mult, cells: line });
         }
-      } else if (a === b || b === c || a === c) {
-        // 2つ揃い → ベット返却
-        multiplier = 1;
-        msgText = '2つ揃い！ ×1（返却）';
-        msgClass = 'msg-win';
-      } else {
-        msgText = 'はずれ…';
-        msgClass = 'msg-lose';
-      }
+      });
 
-      const winAmount = bet * multiplier;
+      const totalMult = wins.reduce((s,w) => s + w.mult, 0);
+      const winAmount  = bet * totalMult;
       credit += winAmount;
-      document.getElementById('win-display').textContent = winAmount > 0 ? winAmount.toLocaleString() : 0;
-      document.getElementById('message').textContent = msgText;
-      document.getElementById('message').className = msgClass;
-
-      if (multiplier > 0) {
-        document.getElementById('win-line').classList.add('show');
-      }
-
-      if (isJackpot) {
-        document.getElementById('message').classList.add('jackpot-flash');
-      }
-
       updateUI();
 
-      // クレジット切れ
+      if (wins.length > 0) {
+        document.getElementById('win-display').textContent = winAmount.toLocaleString();
+
+        const isJackpot = wins.some(w => w.symbol === '7️⃣');
+
+        // シンボルバウンス
+        wins.forEach(w => w.cells.forEach(([r,col]) => bounceSymbol(r, col)));
+
+        // ペイライン光らせ
+        wins.forEach(w => highlightPayline(w.lineIdx));
+
+        // ライン描画
+        drawWinLines(wins.map(w => w.lineIdx));
+
+        if (isJackpot) {
+          setTimeout(() => triggerJackpot(winAmount), 400);
+        } else {
+          flashScreen(wins[0].mult >= 10 ? 'rgba(100,180,255,0.35)' : 'rgba(255,220,50,0.25)');
+          spawnCoins(winAmount);
+          playWin(false);
+          const labels = wins.map(w => `L${w.lineIdx+1}:×${w.mult}`).join(' ');
+          document.getElementById('message').textContent = `✨ ${labels}  +${winAmount.toLocaleString()}枚`;
+          document.getElementById('message').className = 'msg-win';
+        }
+      } else {
+        document.getElementById('message').textContent = 'はずれ…';
+        document.getElementById('message').className = 'msg-lose';
+      }
+
       if (credit < 10) {
-        credit = 1000;
-        bet = 10;
+        credit = 1000; bet = 10;
         setTimeout(() => {
           document.getElementById('message').textContent = 'クレジット補充！ 1000枚追加';
           document.getElementById('message').className = 'msg-win';
           updateUI();
-        }, 1500);
+        }, 2000);
       }
 
       spinning = false;
       document.getElementById('spin-btn').disabled = false;
+    }
+
+    function updateUI() {
+      document.getElementById('credit').textContent = credit.toLocaleString();
+      document.getElementById('bet-display').textContent = bet;
     }
 
     updateUI();
