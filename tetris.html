@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v3 -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -18,12 +18,10 @@
       flex-direction: column;
     }
 
-    /* ====== モバイル上部ステータスバー（常時表示、PCは非表示） ====== */
     #m-stats {
       display: none;
     }
 
-    /* ====== メインエリア（キャンバス ＋ PC サイドパネル） ====== */
     #main {
       flex: 1;
       display: flex;
@@ -45,7 +43,6 @@
       box-shadow: 0 0 20px rgba(74,144,217,0.5);
     }
 
-    /* ====== オーバーレイ ====== */
     #overlay {
       position: absolute; inset: 0;
       background: rgba(0,0,0,0.78);
@@ -65,7 +62,6 @@
     }
     #overlay button:active { background: #357abd; }
 
-    /* ====== PC サイドパネル ====== */
     #side {
       display: flex; flex-direction: column; gap: 14px; min-width: 130px;
     }
@@ -80,10 +76,8 @@
     .key-info h3 { font-size: 11px; color: #4a90d9; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
     .key { display: inline-block; background: #2a2a4e; border: 1px solid #555; border-radius: 3px; padding: 1px 5px; font-size: 10px; }
 
-    /* ====== モバイル操作ボタン（PCは非表示） ====== */
     #m-ctrl { display: none; }
 
-    /* ====== スマホ用レイアウト上書き ====== */
     @media (max-width: 600px) {
       body { height: 100svh; height: 100vh; }
 
@@ -141,7 +135,6 @@
 </head>
 <body>
 
-  <!-- スマホ用ステータスバー -->
   <div id="m-stats">
     <div class="mstat"><div class="ml">SCORE</div><div class="mv" id="ms-score">0</div></div>
     <div class="mstat"><div class="ml">LEVEL</div><div class="mv" id="ms-level">1</div></div>
@@ -152,7 +145,6 @@
     </div>
   </div>
 
-  <!-- メインエリア -->
   <div id="main">
     <div id="game-area">
       <canvas id="board"></canvas>
@@ -163,7 +155,6 @@
       </div>
     </div>
 
-    <!-- PCサイドパネル -->
     <div id="side">
       <div class="pbox"><h3>スコア</h3><div class="val" id="ps-score">0</div></div>
       <div class="pbox"><h3>レベル</h3><div class="val" id="ps-level">1</div></div>
@@ -180,7 +171,6 @@
     </div>
   </div>
 
-  <!-- スマホ用操作ボタン -->
   <div id="m-ctrl">
     <div class="mrow">
       <button class="mbtn" id="btn-l">◀</button>
@@ -215,7 +205,6 @@
 
   let board, piece, nextPiece, score, level, lines, timer, paused, over;
 
-  // ===== キャンバスサイズ計算 =====
   function calcBlock() {
     const mobile = window.innerWidth <= 600;
     if (!mobile) return 30;
@@ -236,7 +225,6 @@
   window.addEventListener('resize', resizeBoard);
   requestAnimationFrame(() => { resizeBoard(); });
 
-  // ===== ゲームロジック =====
   const createBoard = () => Array.from({length: ROWS}, () => Array(COLS).fill(0));
 
   function newPiece() {
@@ -316,7 +304,6 @@
     timer = setInterval(tick, Math.max(100, 800 - (level-1)*70));
   }
 
-  // ===== UI 更新 =====
   function ui() {
     document.getElementById('ps-score').textContent = score.toLocaleString();
     document.getElementById('ps-level').textContent = level;
@@ -326,7 +313,6 @@
     document.getElementById('ms-lines').textContent = lines;
   }
 
-  // ===== 描画 =====
   function block(ctx2, x, y, cid, a=1) {
     if (!cid) return;
     ctx2.globalAlpha = a;
@@ -373,7 +359,6 @@
     }));
   }
 
-  // ===== ゲーム制御 =====
   function startGame() {
     board = createBoard();
     score = 0; level = 1; lines = 0;
@@ -408,10 +393,8 @@
     }
   }
 
-  // ===== スタートボタン =====
   document.getElementById('start-btn').addEventListener('click', startGame);
 
-  // ===== キーボード =====
   document.addEventListener('keydown', e => {
     if (over) return;
     if (e.key === 'p' || e.key === 'P') { togglePause(); return; }
@@ -425,7 +408,6 @@
     }
   });
 
-  // ===== タッチボタン =====
   const holds = {};
   function holdStart(fn) {
     fn();
@@ -454,7 +436,6 @@
   addBtn('btn-d',  () => hardDrop());
   addBtn('btn-p',  () => togglePause());
 
-  // ===== キャンバススワイプ =====
   let tx0, ty0, tt0;
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
