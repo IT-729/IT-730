@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v3 -->
+<!DOCTYPE html><!-- v4 -->
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -6,115 +6,54 @@
   <title>ARAPOKO</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: #1a1a2e;
       font-family: "Hiragino Kaku Gothic ProN", Arial, sans-serif;
       color: #eee;
-      height: 100svh;
-      height: 100vh;
+      height: 100svh; height: 100vh;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
     }
-
-    #m-stats {
-      display: none;
-    }
-
+    #m-stats { display: none; }
     #main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      gap: 20px;
-      padding: 20px;
+      flex: 1; display: flex;
+      justify-content: center; align-items: center;
+      overflow: hidden; gap: 20px; padding: 20px;
     }
-
-    #game-area {
-      position: relative;
-      flex-shrink: 0;
-    }
-
+    #game-area { position: relative; flex-shrink: 0; }
     canvas#board {
       display: block;
       border: 3px solid #4a90d9;
       box-shadow: 0 0 20px rgba(74,144,217,0.5);
+      cursor: pointer;
     }
-
-    #overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.78);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      gap: 14px;
-      z-index: 10;
-    }
-    #overlay h2 { font-size: 26px; color: #4a90d9; letter-spacing: 3px; text-shadow: 0 0 10px rgba(74,144,217,0.8); }
-    #overlay p  { font-size: 13px; color: #aaa; text-align: center; }
-    #overlay .big { font-size: 20px; color: #fff; }
-    #overlay button {
-      padding: 12px 32px; background: #4a90d9; color: #fff;
-      border: none; border-radius: 8px; font-size: 17px;
-      font-family: inherit; cursor: pointer; letter-spacing: 1px;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #overlay button:active { background: #357abd; }
-
-    #side {
-      display: flex; flex-direction: column; gap: 14px; min-width: 130px;
-    }
-    .pbox {
-      background: #16213e; border: 2px solid #4a90d9;
-      border-radius: 8px; padding: 12px; text-align: center;
-    }
+    #side { display: flex; flex-direction: column; gap: 14px; min-width: 130px; }
+    .pbox { background: #16213e; border: 2px solid #4a90d9; border-radius: 8px; padding: 12px; text-align: center; }
     .pbox h3 { font-size: 11px; color: #4a90d9; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
     .pbox .val { font-size: 24px; font-weight: bold; }
     #next-pc { display: block; margin: 0 auto; }
     .key-info { background: #16213e; border: 2px solid #4a90d9; border-radius: 8px; padding: 12px; font-size: 11px; line-height: 1.9; color: #aaa; }
     .key-info h3 { font-size: 11px; color: #4a90d9; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
     .key { display: inline-block; background: #2a2a4e; border: 1px solid #555; border-radius: 3px; padding: 1px 5px; font-size: 10px; }
-
     #m-ctrl { display: none; }
 
     @media (max-width: 600px) {
       body { height: 100svh; height: 100vh; }
-
       #m-stats {
-        display: flex;
-        align-items: center;
-        background: #16213e;
-        border-bottom: 2px solid #4a90d9;
-        padding: 4px 8px;
-        flex-shrink: 0;
-        gap: 4px;
+        display: flex; align-items: center;
+        background: #16213e; border-bottom: 2px solid #4a90d9;
+        padding: 4px 8px; flex-shrink: 0; gap: 4px;
       }
-      .mstat {
-        flex: 1; text-align: center;
-      }
+      .mstat { flex: 1; text-align: center; }
       .mstat .ml { font-size: 9px; color: #4a90d9; letter-spacing: 1px; text-transform: uppercase; }
       .mstat .mv { font-size: 17px; font-weight: bold; line-height: 1.3; }
-
-      #main {
-        padding: 4px;
-        gap: 0;
-        align-items: center;
-        justify-content: center;
-      }
-
+      #main { padding: 4px; gap: 0; align-items: center; justify-content: center; }
       #side { display: none; }
-
       canvas#board { border-width: 2px; }
-
       #m-ctrl {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        padding: 5px 8px 7px;
-        background: #0f0f22;
-        border-top: 2px solid #4a90d9;
-        flex-shrink: 0;
+        display: flex; flex-direction: column; gap: 5px;
+        padding: 5px 8px 7px; background: #0f0f22;
+        border-top: 2px solid #4a90d9; flex-shrink: 0;
       }
       .mrow { display: flex; justify-content: center; gap: 7px; }
       .mbtn {
@@ -129,7 +68,7 @@
         transition: transform 0.06s, box-shadow 0.06s;
       }
       .mbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1a5fa0; }
-      .mbtn.wide   { max-width: none; font-size: 14px; height: 44px; }
+      .mbtn.wide { max-width: none; font-size: 14px; height: 44px; }
     }
   </style>
 </head>
@@ -148,13 +87,7 @@
   <div id="main">
     <div id="game-area">
       <canvas id="board"></canvas>
-      <div id="overlay">
-        <h2>ARAPOKO</h2>
-        <p>タッチボタンで操作</p>
-        <button id="start-btn">スタート</button>
-      </div>
     </div>
-
     <div id="side">
       <div class="pbox"><h3>スコア</h3><div class="val" id="ps-score">0</div></div>
       <div class="pbox"><h3>レベル</h3><div class="val" id="ps-level">1</div></div>
@@ -203,7 +136,8 @@
   const canvas = document.getElementById('board');
   const ctx    = canvas.getContext('2d');
 
-  let board, piece, nextPiece, score, level, lines, timer, paused, over;
+  let board, piece, nextPiece, score, level, lines, timer;
+  let state = 'idle';
 
   function calcBlock() {
     const mobile = window.innerWidth <= 600;
@@ -219,11 +153,61 @@
     BLOCK = calcBlock();
     canvas.width  = COLS * BLOCK;
     canvas.height = ROWS * BLOCK;
-    if (board && piece && !over) draw();
+    if      (state === 'idle')    drawTitle();
+    else if (state === 'playing') draw();
+    else if (state === 'paused')  drawPause();
+    else if (state === 'over')    drawOver();
   }
 
   window.addEventListener('resize', resizeBoard);
   requestAnimationFrame(() => { resizeBoard(); });
+
+  function drawTitle() {
+    ctx.fillStyle = '#0d0d1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#4a90d9';
+    ctx.font = `bold ${Math.floor(BLOCK * 1.5)}px Arial, sans-serif`;
+    ctx.fillText('ARAPOKO', canvas.width / 2, canvas.height * 0.38);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.font = `${Math.floor(BLOCK * 0.78)}px Arial, sans-serif`;
+    ctx.fillText('タップしてスタート', canvas.width / 2, canvas.height * 0.53);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = `${Math.floor(BLOCK * 0.55)}px Arial, sans-serif`;
+    ctx.fillText('スワイプ / ボタンで操作', canvas.width / 2, canvas.height * 0.63);
+    ctx.textAlign = 'left';
+  }
+
+  function drawOver() {
+    draw();
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e04040';
+    ctx.font = `bold ${Math.floor(BLOCK * 1.2)}px Arial, sans-serif`;
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height * 0.35);
+    ctx.fillStyle = '#fff';
+    ctx.font = `${Math.floor(BLOCK * 0.8)}px Arial, sans-serif`;
+    ctx.fillText(`スコア: ${score.toLocaleString()}`, canvas.width / 2, canvas.height * 0.48);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = `${Math.floor(BLOCK * 0.65)}px Arial, sans-serif`;
+    ctx.fillText('タップして再スタート', canvas.width / 2, canvas.height * 0.59);
+    ctx.textAlign = 'left';
+  }
+
+  function drawPause() {
+    draw();
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#4a90d9';
+    ctx.font = `bold ${Math.floor(BLOCK * 1.2)}px Arial, sans-serif`;
+    ctx.fillText('PAUSE', canvas.width / 2, canvas.height * 0.42);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = `${Math.floor(BLOCK * 0.65)}px Arial, sans-serif`;
+    ctx.fillText('⏸ボタンで再開', canvas.width / 2, canvas.height * 0.54);
+    ctx.textAlign = 'left';
+  }
 
   const createBoard = () => Array.from({length: ROWS}, () => Array(COLS).fill(0));
 
@@ -289,14 +273,14 @@
 
   function hardDrop() {
     while (valid(piece.shape, piece.x, piece.y+1)) { piece.y++; score += 2; }
-    ui(); lock(); draw();
+    ui(); lock(); if (state === 'playing') draw();
   }
 
   function tick() {
-    if (paused || over) return;
+    if (state !== 'playing') return;
     if (valid(piece.shape, piece.x, piece.y+1)) piece.y++;
     else lock();
-    draw();
+    if (state === 'playing') draw();
   }
 
   function speed() {
@@ -333,9 +317,11 @@
     ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
     for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) ctx.strokeRect(c*BLOCK,r*BLOCK,BLOCK,BLOCK);
     for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) if (board[r][c]) block(ctx,c,r,board[r][c]);
-    const gy = ghostY();
-    piece.shape.forEach((row,r) => row.forEach((v,c) => { if(v) block(ctx,piece.x+c,gy+r,v,0.18); }));
-    piece.shape.forEach((row,r) => row.forEach((v,c) => { if(v) block(ctx,piece.x+c,piece.y+r,v); }));
+    if (piece) {
+      const gy = ghostY();
+      piece.shape.forEach((row,r) => row.forEach((v,c) => { if(v) block(ctx,piece.x+c,gy+r,v,0.18); }));
+      piece.shape.forEach((row,r) => row.forEach((v,c) => { if(v) block(ctx,piece.x+c,piece.y+r,v); }));
+    }
   }
 
   function drawNext() {
@@ -347,7 +333,7 @@
     const el = document.getElementById(id); if (!el) return;
     const c2 = el.getContext('2d');
     c2.fillStyle = '#0d0d1a'; c2.fillRect(0,0,w,h);
-    const s  = nextPiece.shape;
+    const s = nextPiece.shape;
     const ox = Math.floor((w/bs - s[0].length)/2);
     const oy = Math.floor((h/bs - s.length)/2);
     s.forEach((row,r) => row.forEach((v,c) => {
@@ -362,43 +348,38 @@
   function startGame() {
     board = createBoard();
     score = 0; level = 1; lines = 0;
-    paused = over = false;
     piece = newPiece(); nextPiece = newPiece();
+    state = 'playing';
     ui(); drawNext(); draw();
-    document.getElementById('overlay').style.display = 'none';
     speed();
   }
 
   function endGame() {
-    over = true; clearInterval(timer);
-    const ov = document.getElementById('overlay');
-    ov.innerHTML = `<h2>GAME OVER</h2>
-      <p class="big">スコア: ${score.toLocaleString()}</p>
-      <p>レベル: ${level} / ライン: ${lines}</p>
-      <button id="start-btn">もう一度</button>`;
-    ov.style.display = 'flex';
-    document.getElementById('start-btn').addEventListener('click', startGame);
+    state = 'over';
+    clearInterval(timer);
+    drawOver();
   }
 
   function togglePause() {
-    if (over) return;
-    paused = !paused;
-    const ov = document.getElementById('overlay');
-    if (paused) {
-      ov.innerHTML = `<h2>PAUSE</h2><button id="start-btn">再開</button>`;
-      ov.style.display = 'flex';
-      document.getElementById('start-btn').addEventListener('click', togglePause);
-    } else {
-      ov.style.display = 'none';
+    if (state === 'playing') {
+      state = 'paused';
+      clearInterval(timer);
+      drawPause();
+    } else if (state === 'paused') {
+      state = 'playing';
+      draw();
+      speed();
     }
   }
 
-  document.getElementById('start-btn').addEventListener('click', startGame);
+  canvas.addEventListener('click', () => {
+    if (state === 'idle' || state === 'over') startGame();
+  });
 
   document.addEventListener('keydown', e => {
-    if (over) return;
+    if (state === 'idle' || state === 'over') { startGame(); return; }
     if (e.key === 'p' || e.key === 'P') { togglePause(); return; }
-    if (paused) return;
+    if (state !== 'playing') return;
     switch (e.key) {
       case 'ArrowLeft':  case 'a': if (valid(piece.shape,piece.x-1,piece.y)) { piece.x--; draw(); } break;
       case 'ArrowRight': case 'd': if (valid(piece.shape,piece.x+1,piece.y)) { piece.x++; draw(); } break;
@@ -420,13 +401,13 @@
     const el = document.getElementById(id);
     if (!el) return;
     if (isHold) {
-      el.addEventListener('touchstart', e => { e.preventDefault(); if (!paused && !over) holdStart(fn); }, {passive:false});
+      el.addEventListener('touchstart', e => { e.preventDefault(); if (state === 'playing') holdStart(fn); }, {passive:false});
       el.addEventListener('touchend',   e => { e.preventDefault(); holdEnd(); }, {passive:false});
-      el.addEventListener('mousedown',  () => { if (!paused && !over) holdStart(fn); });
+      el.addEventListener('mousedown',  () => { if (state === 'playing') holdStart(fn); });
       el.addEventListener('mouseup',    () => holdEnd());
     } else {
-      el.addEventListener('touchstart', e => { e.preventDefault(); if (!paused && !over) { fn(); } }, {passive:false});
-      el.addEventListener('click',      () => { if (!paused && !over) fn(); });
+      el.addEventListener('touchstart', e => { e.preventDefault(); if (state === 'playing') fn(); }, {passive:false});
+      el.addEventListener('click',      () => { if (state === 'playing') fn(); });
     }
   }
 
@@ -439,11 +420,18 @@
   let tx0, ty0, tt0;
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY; tt0 = Date.now();
+    if (state === 'idle' || state === 'over') {
+      startGame();
+      return;
+    }
+    if (state !== 'playing') return;
+    tx0 = e.touches[0].clientX;
+    ty0 = e.touches[0].clientY;
+    tt0 = Date.now();
   }, {passive:false});
 
   canvas.addEventListener('touchend', e => {
-    if (over || paused) return;
+    if (state !== 'playing') return;
     e.preventDefault();
     const dx = e.changedTouches[0].clientX - tx0;
     const dy = e.changedTouches[0].clientY - ty0;
